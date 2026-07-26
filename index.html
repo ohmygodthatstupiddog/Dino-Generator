@@ -1,14 +1,706 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<title>Dino Generator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#16130f" />
+  <title>Dino Generator</title>
+
+  <style>
+    :root {
+      --ink: #f4ead7;
+      --muted: #c7b89d;
+      --panel: rgba(29, 24, 18, 0.90);
+      --panel-2: rgba(45, 37, 27, 0.92);
+      --border: rgba(234, 210, 170, 0.25);
+      --accent: #b96f38;
+      --accent-2: #d9a15e;
+      --shadow: rgba(0, 0, 0, 0.35);
+      --success: #8fb67b;
+      --danger: #d98673;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-height: 100%;
+      background: #15110d;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      background:
+        linear-gradient(rgba(15, 12, 9, 0.72), rgba(15, 12, 9, 0.88)),
+        radial-gradient(circle at top, rgba(155, 98, 50, 0.25), transparent 45%),
+        url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1800&q=80")
+          center/cover fixed;
+    }
+
+    button,
+    select,
+    input {
+      font: inherit;
+    }
+
+    .page-shell {
+      width: min(980px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 50px;
+    }
+
+    .hero {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .logo {
+      width: min(260px, 68vw);
+      aspect-ratio: 1 / 1;
+      object-fit: contain;
+      filter: drop-shadow(0 15px 20px rgba(0, 0, 0, 0.45));
+    }
+
+    .hero h1 {
+      margin: -8px 0 6px;
+      font-family: Georgia, "Times New Roman", serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-size: clamp(1.9rem, 6vw, 3.2rem);
+    }
+
+    .hero p {
+      margin: 0 auto;
+      max-width: 650px;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .generator {
+      background: linear-gradient(145deg, var(--panel), var(--panel-2));
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      box-shadow: 0 24px 70px var(--shadow);
+      backdrop-filter: blur(9px);
+      overflow: hidden;
+    }
+
+    .section {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section:last-child {
+      border-bottom: 0;
+    }
+
+    .section-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+
+    .section-title h2 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.15rem;
+      letter-spacing: 0.04em;
+    }
+
+    .section-title span {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .chip-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 10px;
+    }
+
+    .chip {
+      position: relative;
+    }
+
+    .chip input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .chip label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 46px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.035);
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease,
+        background 0.15s ease, color 0.15s ease;
+      user-select: none;
+      text-align: center;
+    }
+
+    .chip label:active {
+      transform: scale(0.98);
+    }
+
+    .chip input:checked + label {
+      color: #fff7e9;
+      background: linear-gradient(135deg, rgba(185, 111, 56, 0.65), rgba(120, 72, 39, 0.72));
+      border-color: rgba(255, 218, 174, 0.65);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+
+    .controls-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 7px;
+    }
+
+    .field select,
+    .field input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 12px 13px;
+      color: var(--ink);
+      background: rgba(0, 0, 0, 0.25);
+      outline: none;
+    }
+
+    .field select:focus,
+    .field input:focus {
+      border-color: var(--accent-2);
+    }
+
+    .button-row {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .primary,
+    .secondary {
+      border: 0;
+      border-radius: 15px;
+      min-height: 52px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-weight: 800;
+      letter-spacing: 0.045em;
+      text-transform: uppercase;
+      transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .primary {
+      color: #fff8ee;
+      background: linear-gradient(135deg, var(--accent), #7c4528);
+      box-shadow: 0 12px 30px rgba(111, 56, 28, 0.35);
+    }
+
+    .secondary {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border);
+    }
+
+    .primary:active,
+    .secondary:active {
+      transform: translateY(1px) scale(0.99);
+    }
+
+    .primary:hover,
+    .secondary:hover {
+      filter: brightness(1.08);
+    }
+
+    .result-wrap {
+      min-height: 180px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      padding: 24px 20px 28px;
+      background:
+        radial-gradient(circle at center, rgba(185, 111, 56, 0.12), transparent 65%);
+    }
+
+    .empty-state {
+      color: var(--muted);
+    }
+
+    .empty-state strong {
+      display: block;
+      color: var(--ink);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.25rem;
+      margin-bottom: 6px;
+    }
+
+    .result-card {
+      width: 100%;
+      animation: reveal 0.35s ease both;
+    }
+
+    @keyframes reveal {
+      from {
+        opacity: 0;
+        transform: translateY(8px) scale(0.985);
+      }
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    .result-name {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 9vw, 4.3rem);
+      line-height: 1;
+      color: #fff4df;
+      text-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
+      overflow-wrap: anywhere;
+    }
+
+    .tag-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .tag {
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 0.82rem;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.07);
+      border: 1px solid var(--border);
+    }
+
+    .multi-results {
+      display: grid;
+      gap: 10px;
+      margin-top: 5px;
+    }
+
+    .multi-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      text-align: left;
+      padding: 12px 14px;
+      border-radius: 13px;
+      background: rgba(0, 0, 0, 0.20);
+      border: 1px solid var(--border);
+    }
+
+    .multi-item strong {
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.08rem;
+    }
+
+    .multi-item span {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-align: right;
+    }
+
+    .message {
+      width: 100%;
+      border-radius: 13px;
+      padding: 12px 14px;
+      margin-top: 12px;
+      font-size: 0.92rem;
+      display: none;
+    }
+
+    .message.error {
+      display: block;
+      color: #ffe2dd;
+      background: rgba(151, 67, 54, 0.28);
+      border: 1px solid rgba(217, 134, 115, 0.45);
+    }
+
+    .message.success {
+      display: block;
+      color: #e6f3df;
+      background: rgba(84, 116, 70, 0.28);
+      border: 1px solid rgba(143, 182, 123, 0.45);
+    }
+
+    .footer-note {
+      margin: 16px auto 0;
+      text-align: center;
+      color: rgba(244, 234, 215, 0.62);
+      font-size: 0.8rem;
+      line-height: 1.45;
+    }
+
+    @media (min-width: 700px) {
+      .page-shell {
+        padding-top: 34px;
+      }
+
+      .section {
+        padding: 24px 26px;
+      }
+
+      .controls-row {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .button-row {
+        grid-template-columns: 1.6fr 1fr;
+      }
+
+      .multi-results {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
 </head>
 
 <body>
+  <main class="page-shell">
+    <header class="hero">
+      <img
+        class="logo"
+        src="dino-generator-logo.png"
+        alt="Dino Generator logo"
+      />
+      <h1>Dino Generator</h1>
+      <p>
+        Pick any filters you want, then let the generator choose your next
+        Path of Titans creature.
+      </p>
+    </header>
 
-<h1>Dino Generator</h1>
+    <section class="generator" aria-label="Dinosaur generator">
+      <div class="section">
+        <div class="section-title">
+          <h2>Diet</h2>
+          <span>Select one or more</span>
+        </div>
 
-<p>Welcome to my Dino Generator!</p>
+        <div class="chip-grid" id="dietFilters">
+          <div class="chip">
+            <input type="checkbox" id="diet-carnivore" value="Carnivore" />
+            <label for="diet-carnivore">Carnivore</label>
+          </div>
+          <div class="chip">
+            <input type="checkbox" id="diet-herbivore" value="Herbivore" />
+            <label for="diet-herbivore">Herbivore</label>
+          </div>
+        </div>
+      </div>
 
+      <div class="section">
+        <div class="section-title">
+          <h2>Creature Type</h2>
+          <span>Select one or more</span>
+        </div>
+
+        <div class="chip-grid" id="typeFilters">
+          <div class="chip">
+            <input type="checkbox" id="type-land" value="Land" />
+            <label for="type-land">Land</label>
+          </div>
+          <div class="chip">
+            <input type="checkbox" id="type-semi" value="Semi-Aquatic" />
+            <label for="type-semi">Semi-Aquatic</label>
+          </div>
+          <div class="chip">
+            <input type="checkbox" id="type-flyer" value="Flyer" />
+            <label for="type-flyer">Flyer</label>
+          </div>
+          <div class="chip">
+            <input type="checkbox" id="type-aquatic" value="Aquatic" />
+            <label for="type-aquatic">Aquatic</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">
+          <h2>Roster</h2>
+          <span>Official, modded, or both</span>
+        </div>
+
+        <div class="chip-grid" id="rosterFilters">
+          <div class="chip">
+            <input type="checkbox" id="roster-official" value="Official" />
+            <label for="roster-official">Official</label>
+          </div>
+          <div class="chip">
+            <input type="checkbox" id="roster-modded" value="Modded" />
+            <label for="roster-modded">Modded</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="controls-row">
+          <div class="field">
+            <label for="amount">How many should it generate?</label>
+            <select id="amount">
+              <option value="1">1 dinosaur</option>
+              <option value="2">2 dinosaurs</option>
+              <option value="3">3 dinosaurs</option>
+              <option value="4">4 dinosaurs</option>
+              <option value="5">5 dinosaurs</option>
+              <option value="6">6 dinosaurs</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="search">Optional name search</label>
+            <input
+              id="search"
+              type="search"
+              placeholder="Example: rex, cerato, sucho..."
+              autocomplete="off"
+            />
+          </div>
+        </div>
+
+        <div class="button-row" style="margin-top: 16px">
+          <button class="primary" id="generateButton" type="button">
+            Generate Dinosaur
+          </button>
+          <button class="secondary" id="clearButton" type="button">
+            Clear Filters
+          </button>
+        </div>
+
+        <div class="message" id="message" role="status"></div>
+      </div>
+
+      <div class="result-wrap" id="result">
+        <div class="empty-state">
+          <strong>Ready when you are.</strong>
+          Choose filters—or leave everything blank for a completely random pick.
+        </div>
+      </div>
+    </section>
+
+    <p class="footer-note">
+      Starter roster included. The dinosaur list is intentionally kept inside
+      this single file so it is easy to update later.
+    </p>
+  </main>
+
+  <script>
+    /*
+      STARTER ROSTER
+      You can add, remove, or rename creatures here later.
+
+      Format:
+      { name: "Creature", diet: "Carnivore", types: ["Land"], roster: "Official" }
+    */
+    const dinosaurs = [
+      { name: "Achillobator", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Alioramus", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Allosaurus", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Ceratosaurus", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Concavenator", diet: "Carnivore", types: ["Land", "Semi-Aquatic"], roster: "Official" },
+      { name: "Daspletosaurus", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Deinonychus", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Hatzegopteryx", diet: "Carnivore", types: ["Flyer"], roster: "Official" },
+      { name: "Latenivenatrix", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Megalania", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Metriacanthosaurus", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Pycno", diet: "Carnivore", types: ["Land"], roster: "Official" },
+      { name: "Sarcosuchus", diet: "Carnivore", types: ["Semi-Aquatic"], roster: "Official" },
+      { name: "Spinosaurus", diet: "Carnivore", types: ["Semi-Aquatic"], roster: "Official" },
+      { name: "Suchomimus", diet: "Carnivore", types: ["Land", "Semi-Aquatic"], roster: "Official" },
+      { name: "Thalassodromeus", diet: "Carnivore", types: ["Flyer"], roster: "Official" },
+      { name: "Tyrannosaurus", diet: "Carnivore", types: ["Land"], roster: "Official" },
+
+      { name: "Albertaceratops", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Amargasaurus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Anodontosaurus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Barsboldia", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Camptosaurus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Eotriceratops", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Iguanodon", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Kentrosaurus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Lambeosaurus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Pachycephalosaurus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Stegosaurus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Struthiomimus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+      { name: "Styracosaurus", diet: "Herbivore", types: ["Land"], roster: "Official" },
+
+      { name: "Kaiwhekea", diet: "Carnivore", types: ["Aquatic"], roster: "Official" },
+      { name: "Eurhinosaurus", diet: "Carnivore", types: ["Aquatic"], roster: "Official" },
+
+      /* Example modded entries — replace these with your server's exact mod list */
+      { name: "Therizinosaurus", diet: "Herbivore", types: ["Land"], roster: "Modded" },
+      { name: "Giganotosaurus", diet: "Carnivore", types: ["Land"], roster: "Modded" },
+      { name: "Quetzalcoatlus", diet: "Carnivore", types: ["Flyer"], roster: "Modded" },
+      { name: "Deinosuchus", diet: "Carnivore", types: ["Semi-Aquatic"], roster: "Modded" },
+      { name: "Mosasaurus", diet: "Carnivore", types: ["Aquatic"], roster: "Modded" }
+    ];
+
+    const result = document.getElementById("result");
+    const message = document.getElementById("message");
+    const generateButton = document.getElementById("generateButton");
+    const clearButton = document.getElementById("clearButton");
+    const amountSelect = document.getElementById("amount");
+    const searchInput = document.getElementById("search");
+
+    function checkedValues(containerId) {
+      return Array.from(
+        document.querySelectorAll(`#${containerId} input:checked`)
+      ).map((input) => input.value);
+    }
+
+    function setMessage(text = "", type = "") {
+      message.textContent = text;
+      message.className = "message";
+      if (text && type) message.classList.add(type);
+    }
+
+    function shuffle(items) {
+      const copy = [...items];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function formatTypes(types) {
+      return types.join(" · ");
+    }
+
+    function renderResults(picks) {
+      if (picks.length === 1) {
+        const dino = picks[0];
+
+        result.innerHTML = `
+          <div class="result-card">
+            <p class="result-name">${dino.name}</p>
+            <div class="tag-row">
+              <span class="tag">${dino.diet}</span>
+              ${dino.types.map((type) => `<span class="tag">${type}</span>`).join("")}
+              <span class="tag">${dino.roster}</span>
+            </div>
+          </div>
+        `;
+        return;
+      }
+
+      result.innerHTML = `
+        <div class="result-card">
+          <div class="multi-results">
+            ${picks
+              .map(
+                (dino, index) => `
+                  <div class="multi-item">
+                    <strong>${index + 1}. ${dino.name}</strong>
+                    <span>${dino.diet}<br>${formatTypes(dino.types)} · ${dino.roster}</span>
+                  </div>
+                `
+              )
+              .join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    function generate() {
+      setMessage();
+
+      const selectedDiets = checkedValues("dietFilters");
+      const selectedTypes = checkedValues("typeFilters");
+      const selectedRosters = checkedValues("rosterFilters");
+      const searchTerm = searchInput.value.trim().toLowerCase();
+      const amount = Number(amountSelect.value);
+
+      const eligible = dinosaurs.filter((dino) => {
+        const dietMatch =
+          selectedDiets.length === 0 || selectedDiets.includes(dino.diet);
+
+        const typeMatch =
+          selectedTypes.length === 0 ||
+          selectedTypes.some((type) => dino.types.includes(type));
+
+        const rosterMatch =
+          selectedRosters.length === 0 || selectedRosters.includes(dino.roster);
+
+        const nameMatch =
+          searchTerm.length === 0 || dino.name.toLowerCase().includes(searchTerm);
+
+        return dietMatch && typeMatch && rosterMatch && nameMatch;
+      });
+
+      if (eligible.length === 0) {
+        result.innerHTML = `
+          <div class="empty-state">
+            <strong>No dinosaurs matched.</strong>
+            Try removing one of your filters.
+          </div>
+        `;
+        setMessage("No dinosaurs match that exact combination.", "error");
+        return;
+      }
+
+      const picks = shuffle(eligible).slice(0, Math.min(amount, eligible.length));
+      renderResults(picks);
+
+      if (amount > eligible.length) {
+        setMessage(
+          `Only ${eligible.length} dinosaur${eligible.length === 1 ? "" : "s"} matched, so every available match was shown.`,
+          "success"
+        );
+      }
+    }
+
+    function clearFilters() {
+      document
+        .querySelectorAll('input[type="checkbox"]')
+        .forEach((checkbox) => (checkbox.checked = false));
+
+      amountSelect.value = "1";
+      searchInput.value = "";
+      setMessage();
+
+      result.innerHTML = `
+        <div class="empty-state">
+          <strong>Ready when you are.</strong>
+          Choose filters—or leave everything blank for a completely random pick.
+        </div>
+      `;
+    }
+
+    generateButton.addEventListener("click", generate);
+    clearButton.addEventListener("click", clearFilters);
+
+    searchInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") generate();
+    });
+  </script>
 </body>
 </html>
